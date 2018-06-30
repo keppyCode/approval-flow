@@ -1,5 +1,7 @@
+
+###主页地址：http://localhost:8095/model-list.html
 server:
-  port: 80
+  port: 8095
 security:
   basic:
     enabled: false
