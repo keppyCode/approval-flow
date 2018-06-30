@@ -30,11 +30,12 @@ function simpleSuccess(result) {
         }
         //返回
         if(result['back']){
-            window.location.href = document.referrer;
+            //window.top.location.href = document.referrer;
+            window.open(document.referrer);//新开一个窗口打开
         }
         //跳转
         if(result['redirectUrl']!=null){
-            window.location.href = result.redirectUrl;
+            window.top.location.href = result.redirectUrl;
             return;
         }
         return result.data;
