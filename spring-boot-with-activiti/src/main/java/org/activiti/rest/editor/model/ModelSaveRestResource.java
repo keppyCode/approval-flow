@@ -12,6 +12,7 @@
  */
 package org.activiti.rest.editor.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.activiti.editor.constants.ModelDataJsonConstants;
@@ -25,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
@@ -34,7 +37,7 @@ import java.io.InputStream;
 /**
  * @author Tijs Rademakers
  */
-@RestController
+@Controller
 @RequestMapping("service")
 public class ModelSaveRestResource implements ModelDataJsonConstants {
   
@@ -46,43 +49,48 @@ public class ModelSaveRestResource implements ModelDataJsonConstants {
   @Autowired
   private ObjectMapper objectMapper;
   
-  @RequestMapping(value="/model/{modelId}/save", method = RequestMethod.PUT)
+  @RequestMapping(value="/model/{modelId}/save", method = RequestMethod.PUT,produces = {"application/json;charset=UTF-8"})
   @ResponseStatus(value = HttpStatus.OK)
   public void saveModel(@PathVariable String modelId
           , String name, String description
           , String json_xml, String svg_xml) {
     try {
-      
+
       Model model = repositoryService.getModel(modelId);
-      
+
       ObjectNode modelJson = (ObjectNode) objectMapper.readTree(model.getMetaInfo());
-      
+      ObjectNode modelJsonNew = (ObjectNode) objectMapper.readTree(json_xml);
+      JsonNode properties  = modelJsonNew.get("properties");
       modelJson.put(MODEL_NAME, name);
       modelJson.put(MODEL_DESCRIPTION, description);
       model.setMetaInfo(modelJson.toString());
       model.setName(name);
-      
+      model.setKey(properties.get("process_id").textValue());
+      model.setCategory("测试乱码");
+      LOGGER.info("++++++"+model.getMetaInfo());
       repositoryService.saveModel(model);
-      
+
       repositoryService.addModelEditorSource(model.getId(), json_xml.getBytes("utf-8"));
-      
+
       InputStream svgStream = new ByteArrayInputStream(svg_xml.getBytes("utf-8"));
       TranscoderInput input = new TranscoderInput(svgStream);
-      
+
       PNGTranscoder transcoder = new PNGTranscoder();
       // Setup output
       ByteArrayOutputStream outStream = new ByteArrayOutputStream();
       TranscoderOutput output = new TranscoderOutput(outStream);
-      
+
       // Do the transformation
       transcoder.transcode(input, output);
       final byte[] result = outStream.toByteArray();
       repositoryService.addModelEditorSourceExtra(model.getId(), result);
       outStream.close();
-      
+
     } catch (Exception e) {
       LOGGER.error("Error saving model", e);
       throw new ActivitiException("Error saving model", e);
     }
   }
+
+
 }

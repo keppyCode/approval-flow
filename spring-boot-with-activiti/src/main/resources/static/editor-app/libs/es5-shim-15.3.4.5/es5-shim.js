@@ -789,6 +789,7 @@ if (!dateToJSONIsSupported) {
 if (!Date.parse || "Date.parse is buggy") {
     // XXX global assignment won't work in embeddings that use
     // an alternate object for the context.
+     // noinspection JSAnnotator
     Date = (function(NativeDate) {
 
         // Date.length === 7

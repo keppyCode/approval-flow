@@ -146,6 +146,8 @@ public class ModelerController implements RestServiceController<Model, String>{
 
     @Override
     public Object putOne(@PathVariable("id") String s, @RequestBody Model entity) {
+
+
         throw new UnsupportedOperationException();
     }
 
